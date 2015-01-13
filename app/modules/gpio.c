@@ -93,12 +93,12 @@ static int lgpio_mode( lua_State* L )
   unsigned pin;
 
   pin = luaL_checkinteger( L, 1 );
-  MOD_CHECK_ID( gpio, pin );
+  //MOD_CHECK_ID( gpio, pin );
   mode = luaL_checkinteger( L, 2 );
   if ( mode!=OUTPUT && mode!=INPUT && mode!=INTERRUPT)
     return luaL_error( L, "wrong arg type" );
-  if(pin==0 && mode==INTERRUPT)
-    return luaL_error( L, "no interrupt for D0" );
+  if(pin==16 && mode==INTERRUPT)
+    return luaL_error( L, "no interrupt for 16" );
   if(lua_isnumber(L, 3))
     pullup = lua_tointeger( L, 3 );
   if(pullup!=FLOAT)
@@ -113,8 +113,9 @@ static int lgpio_mode( lua_State* L )
   }
 #endif
   int r = platform_gpio_mode( pin, mode, pullup );
-  if( r<0 )
-    return luaL_error( L, "wrong pin num." );
+  CHECK_GPIO_SUCCESS(pin, r);
+  /*if( r<0 )
+    return luaL_error( L, "wrong pin num." );*/
   return 0;  
 }
 
@@ -124,9 +125,10 @@ static int lgpio_read( lua_State* L )
   unsigned pin;
   
   pin = luaL_checkinteger( L, 1 );
-  MOD_CHECK_ID( gpio, pin );
+  //MOD_CHECK_ID( gpio, pin );
 
   unsigned level = platform_gpio_read( pin );
+  CHECK_GPIO_SUCCESS(pin, level);
   lua_pushinteger( L, level );
   return 1; 
 }
@@ -138,11 +140,12 @@ static int lgpio_write( lua_State* L )
   unsigned pin;
   
   pin = luaL_checkinteger( L, 1 );
-  MOD_CHECK_ID( gpio, pin );
+  //MOD_CHECK_ID( gpio, pin );
   level = luaL_checkinteger( L, 2 );
   if ( level!=HIGH && level!=LOW )
     return luaL_error( L, "wrong arg type" );
-  platform_gpio_write(pin, level);
+  int success = platform_gpio_write(pin, level);
+  CHECK_GPIO_SUCCESS(pin, success);
   return 0;  
 }
 

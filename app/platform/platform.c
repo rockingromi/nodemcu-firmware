@@ -41,9 +41,10 @@ extern void lua_gpio_unref(unsigned pin);
 int platform_gpio_mode( unsigned pin, unsigned mode, unsigned pull )
 {
   // NODE_DBG("Function platform_gpio_mode() is called. pin_mux:%d, func:%d\n",pin_mux[pin],pin_func[pin]);
-  if (pin >= NUM_GPIO)
+  if(is_gpio_invalid(pin)){
     return -1;
-  if(pin == 0){
+  }
+  if(pin == 16){
     if(mode==PLATFORM_GPIO_INPUT)
       gpio16_input_conf();
     else
@@ -77,7 +78,7 @@ int platform_gpio_mode( unsigned pin, unsigned mode, unsigned pull )
 #ifdef GPIO_INTERRUPT_ENABLE
       lua_gpio_unref(pin);    // unref the lua ref call back.
 #endif
-      GPIO_DIS_OUTPUT(pin_num[pin]);
+      GPIO_DIS_OUTPUT(pin);
     case PLATFORM_GPIO_OUTPUT:
       ETS_GPIO_INTR_DISABLE();
 #ifdef GPIO_INTERRUPT_ENABLE
@@ -85,18 +86,18 @@ int platform_gpio_mode( unsigned pin, unsigned mode, unsigned pull )
 #endif
       PIN_FUNC_SELECT(pin_mux[pin], pin_func[pin]);
       //disable interrupt
-      gpio_pin_intr_state_set(GPIO_ID_PIN(pin_num[pin]), GPIO_PIN_INTR_DISABLE);
+      gpio_pin_intr_state_set(GPIO_ID_PIN(pin), GPIO_PIN_INTR_DISABLE);
       //clear interrupt status
-      GPIO_REG_WRITE(GPIO_STATUS_W1TC_ADDRESS, BIT(pin_num[pin]));
-      GPIO_REG_WRITE(GPIO_PIN_ADDR(GPIO_ID_PIN(pin_num[pin])), GPIO_REG_READ(GPIO_PIN_ADDR(GPIO_ID_PIN(pin_num[pin]))) & (~ GPIO_PIN_PAD_DRIVER_SET(GPIO_PAD_DRIVER_ENABLE))); //disable open drain; 
+      GPIO_REG_WRITE(GPIO_STATUS_W1TC_ADDRESS, BIT(pin));
+      GPIO_REG_WRITE(GPIO_PIN_ADDR(GPIO_ID_PIN(pin)), GPIO_REG_READ(GPIO_PIN_ADDR(GPIO_ID_PIN(pin))) & (~ GPIO_PIN_PAD_DRIVER_SET(GPIO_PAD_DRIVER_ENABLE))); //disable open drain; 
       ETS_GPIO_INTR_ENABLE();
       break;
 #ifdef GPIO_INTERRUPT_ENABLE
     case PLATFORM_GPIO_INT:
       ETS_GPIO_INTR_DISABLE();
       PIN_FUNC_SELECT(pin_mux[pin], pin_func[pin]);
-      GPIO_DIS_OUTPUT(pin_num[pin]);
-      gpio_register_set(GPIO_PIN_ADDR(GPIO_ID_PIN(pin_num[pin])), GPIO_PIN_INT_TYPE_SET(GPIO_PIN_INTR_DISABLE)
+      GPIO_DIS_OUTPUT(pin);
+      gpio_register_set(GPIO_PIN_ADDR(GPIO_ID_PIN(pin)), GPIO_PIN_INT_TYPE_SET(GPIO_PIN_INTR_DISABLE)
                         | GPIO_PIN_PAD_DRIVER_SET(GPIO_PAD_DRIVER_DISABLE)
                         | GPIO_PIN_SOURCE_SET(GPIO_AS_PIN_SOURCE));
       ETS_GPIO_INTR_ENABLE();
@@ -110,31 +111,34 @@ int platform_gpio_mode( unsigned pin, unsigned mode, unsigned pull )
 
 int platform_gpio_write( unsigned pin, unsigned level )
 {
-  // NODE_DBG("Function platform_gpio_write() is called. pin:%d, level:%d\n",GPIO_ID_PIN(pin_num[pin]),level);
-  if (pin >= NUM_GPIO)
+  // NODE_DBG("Function platform_gpio_write() is called. pin:%d, level:%d\n",GPIO_ID_PIN(pin),level);
+  if(is_gpio_invalid(pin)){
     return -1;
-  if(pin == 0){
+  }
+  if(pin == 16){
     gpio16_output_conf();
     gpio16_output_set(level);
     return 1;
   }
 
-  GPIO_OUTPUT_SET(GPIO_ID_PIN(pin_num[pin]), level);
+  GPIO_OUTPUT_SET(GPIO_ID_PIN(pin), level);
+  return 1;
 }
 
 int platform_gpio_read( unsigned pin )
 {
-  // NODE_DBG("Function platform_gpio_read() is called. pin:%d\n",GPIO_ID_PIN(pin_num[pin]));
-  if (pin >= NUM_GPIO)
+  // NODE_DBG("Function platform_gpio_read() is called. pin:%d\n",GPIO_ID_PIN(pin));
+  if(is_gpio_invalid(pin)){
     return -1;
+  }
 
-  if(pin == 0){
+  if(pin == 16){
     gpio16_input_conf();
     return 0x1 & gpio16_input_get();
   }
 
-  GPIO_DIS_OUTPUT(pin_num[pin]);
-  return 0x1 & GPIO_INPUT_GET(GPIO_ID_PIN(pin_num[pin]));
+  GPIO_DIS_OUTPUT(pin);
+  return 0x1 & GPIO_INPUT_GET(GPIO_ID_PIN(pin));
 }
 
 #ifdef GPIO_INTERRUPT_ENABLE
@@ -142,16 +146,16 @@ static void platform_gpio_intr_dispatcher( platform_gpio_intr_handler_fn_t cb){
   uint8 i, level;
   uint32 gpio_status = GPIO_REG_READ(GPIO_STATUS_ADDRESS);
   for (i = 0; i < GPIO_PIN_NUM; i++) {
-    if (pin_int_type[i] && (gpio_status & BIT(pin_num[i])) ) {
+    if (pin_int_type[i] && (gpio_status & BIT(i)) ) {
       //disable interrupt
-      gpio_pin_intr_state_set(GPIO_ID_PIN(pin_num[i]), GPIO_PIN_INTR_DISABLE);
+      gpio_pin_intr_state_set(GPIO_ID_PIN(i), GPIO_PIN_INTR_DISABLE);
       //clear interrupt status
-      GPIO_REG_WRITE(GPIO_STATUS_W1TC_ADDRESS, gpio_status & BIT(pin_num[i]));
-      level = 0x1 & GPIO_INPUT_GET(GPIO_ID_PIN(pin_num[i]));
+      GPIO_REG_WRITE(GPIO_STATUS_W1TC_ADDRESS, gpio_status & BIT(i));
+      level = 0x1 & GPIO_INPUT_GET(GPIO_ID_PIN(i));
       if(cb){
         cb(i, level);
       }
-      gpio_pin_intr_state_set(GPIO_ID_PIN(pin_num[i]), pin_int_type[i]);
+      gpio_pin_intr_state_set(GPIO_ID_PIN(i), pin_int_type[i]);
     }
   }
 }
@@ -163,14 +167,15 @@ void platform_gpio_init( platform_gpio_intr_handler_fn_t cb )
 
 int platform_gpio_intr_init( unsigned pin, GPIO_INT_TYPE type )
 {
-  if (pin >= NUM_GPIO)
+  if(is_gpio_invalid(pin)){
     return -1;
+  }
   ETS_GPIO_INTR_DISABLE();
   //clear interrupt status
-  GPIO_REG_WRITE(GPIO_STATUS_W1TC_ADDRESS, BIT(pin_num[pin]));
+  GPIO_REG_WRITE(GPIO_STATUS_W1TC_ADDRESS, BIT(pin));
   pin_int_type[pin] = type;
   //enable interrupt
-  gpio_pin_intr_state_set(GPIO_ID_PIN(pin_num[pin]), type);
+  gpio_pin_intr_state_set(GPIO_ID_PIN(pin), type);
   ETS_GPIO_INTR_ENABLE();
 }
 #endif

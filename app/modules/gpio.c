@@ -20,7 +20,7 @@
 
 
 #ifdef GPIO_INTERRUPT_ENABLE
-static int gpio_cb_ref[GPIO_PIN_NUM];
+static int gpio_cb_ref[GPIO_MAX_INDEX+1];
 static lua_State* gL = NULL;
 
 void lua_gpio_unref(unsigned pin){
@@ -51,9 +51,9 @@ static int lgpio_trig( lua_State* L )
   size_t sl;
   
   pin = luaL_checkinteger( L, 1 );
-  MOD_CHECK_ID( gpio, pin );
+  /*MOD_CHECK_ID( gpio, pin );
   if(pin==0)
-    return luaL_error( L, "no interrupt for D0" );
+    return luaL_error( L, "no interrupt for D0" );*/
 
   const char *str = luaL_checklstring( L, 2, &sl );
   if (str == NULL)
@@ -81,7 +81,8 @@ static int lgpio_trig( lua_State* L )
     gpio_cb_ref[pin] = luaL_ref(L, LUA_REGISTRYINDEX);
   }
 
-  platform_gpio_intr_init(pin, type);
+  int success = platform_gpio_intr_init(pin, type);
+  CHECK_GPIO_SUCCESS(pin, success);
   return 0;  
 }
 #endif

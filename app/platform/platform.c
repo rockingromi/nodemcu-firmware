@@ -145,7 +145,10 @@ int platform_gpio_read( unsigned pin )
 static void platform_gpio_intr_dispatcher( platform_gpio_intr_handler_fn_t cb){
   uint8 i, level;
   uint32 gpio_status = GPIO_REG_READ(GPIO_STATUS_ADDRESS);
-  for (i = 0; i < GPIO_PIN_NUM; i++) {
+  for (i = 0; i <= GPIO_MAX_INDEX; i++) {
+    if (is_gpio_invalid(i)){
+        continue;
+    }
     if (pin_int_type[i] && (gpio_status & BIT(i)) ) {
       //disable interrupt
       gpio_pin_intr_state_set(GPIO_ID_PIN(i), GPIO_PIN_INTR_DISABLE);
@@ -170,6 +173,9 @@ int platform_gpio_intr_init( unsigned pin, GPIO_INT_TYPE type )
   if(is_gpio_invalid(pin)){
     return -1;
   }
+  if(pin == 16){
+    return -1;
+  }
   ETS_GPIO_INTR_DISABLE();
   //clear interrupt status
   GPIO_REG_WRITE(GPIO_STATUS_W1TC_ADDRESS, BIT(pin));
@@ -177,6 +183,7 @@ int platform_gpio_intr_init( unsigned pin, GPIO_INT_TYPE type )
   //enable interrupt
   gpio_pin_intr_state_set(GPIO_ID_PIN(pin), type);
   ETS_GPIO_INTR_ENABLE();
+  return 1;
 }
 #endif
 

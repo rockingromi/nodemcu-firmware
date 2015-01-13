@@ -21,14 +21,14 @@ static int node_restart( lua_State* L )
   return 0;  
 }
 
-// Lua: dsleep( us )
+// Lua: dsleep( ms )
 static int node_deepsleep( lua_State* L )
 {
-  s32 us;
-  us = luaL_checkinteger( L, 1 );
-  if ( us <= 0 )
+  s32 ms;
+  ms = luaL_checkinteger( L, 1 );
+  if ( ms <= 0 )
     return luaL_error( L, "wrong arg range" );
-  system_deep_sleep( us );
+  system_deep_sleep( ms*1000 );
   return 0;  
 }
 

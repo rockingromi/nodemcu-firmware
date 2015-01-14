@@ -133,11 +133,11 @@ int platform_gpio_read( unsigned pin )
   }
 
   if(pin == 16){
-    gpio16_input_conf();
+    //gpio16_input_conf(); //this is not necessary
     return 0x1 & gpio16_input_get();
   }
 
-  GPIO_DIS_OUTPUT(pin);
+  //GPIO_DIS_OUTPUT(pin); //this is not necessary
   return 0x1 & GPIO_INPUT_GET(GPIO_ID_PIN(pin));
 }
 

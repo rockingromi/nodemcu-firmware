@@ -128,7 +128,7 @@ static int lgpio_read( lua_State* L )
   pin = luaL_checkinteger( L, 1 );
   //MOD_CHECK_ID( gpio, pin );
 
-  unsigned level = platform_gpio_read( pin );
+  signed level = platform_gpio_read( pin );
   CHECK_GPIO_SUCCESS(pin, level);
   lua_pushinteger( L, level );
   return 1; 

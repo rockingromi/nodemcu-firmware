@@ -18,8 +18,8 @@ static int i2c_setup( lua_State *L )
   MOD_CHECK_ID( gpio, sda );
   MOD_CHECK_ID( gpio, scl );
 
-  if(scl==0 || sda==0)
-    return luaL_error( L, "no i2c for D0" );
+  if(scl==16 || sda==16)
+    return luaL_error( L, "no i2c for GPIO16" );
 
   s32 speed = ( s32 )luaL_checkinteger( L, 4 );
   if (speed <= 0)

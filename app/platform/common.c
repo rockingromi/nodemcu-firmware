@@ -13,9 +13,9 @@ void cmn_platform_init(void)
 // ****************************************************************************
 // GPIO functions
 
-int platform_gpio_exists( unsigned pin )
+int platform_gpio_exists( unsigned gpio )
 {
-  return pin < NUM_GPIO;
+  return !is_gpio_invalid(gpio);
 }
 
 // ****************************************************************************
@@ -40,7 +40,7 @@ int platform_spi_exists( unsigned id )
 
 int platform_pwm_exists( unsigned id )
 {
-  return ((id < NUM_PWM) && (id > 0));
+  return (!is_gpio_invalid(id)) && id != 16;
 }
 
 // ****************************************************************************
@@ -64,7 +64,7 @@ int platform_uart_exists( unsigned id )
 
 int platform_ow_exists( unsigned id )
 {
-  return ((id < NUM_OW) && (id > 0));
+  return (!is_gpio_invalid(id)) && id != 16;
 }
 
 // ****************************************************************************

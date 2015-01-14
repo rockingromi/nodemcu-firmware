@@ -9,17 +9,17 @@
 
 #include "c_types.h"
 
-// Lua: realfrequency = setup( id, frequency, duty )
+// Lua: realfrequency = setup( gpio, frequency, duty )
 static int lpwm_setup( lua_State* L )
 {
   s32 freq;	  // signed, to error check for negative values
   unsigned duty;
-  unsigned id;
+  unsigned gpio;
   
-  id = luaL_checkinteger( L, 1 );
-  if(id==0)
-    return luaL_error( L, "no pwm for D0" );
-  MOD_CHECK_ID( pwm, id );
+  gpio = luaL_checkinteger( L, 1 );
+  if(gpio==16)
+    return luaL_error( L, "no pwm for GPIO16" );
+  MOD_CHECK_gpio( pwm, gpio );
   freq = luaL_checkinteger( L, 2 );
   if ( freq <= 0 )
     return luaL_error( L, "wrong arg range" );
@@ -27,99 +27,99 @@ static int lpwm_setup( lua_State* L )
   if ( duty > NORMAL_PWM_DEPTH )
     // Negative values will turn out > 100, so will also fail.
     return luaL_error( L, "wrong arg range" );
-  freq = platform_pwm_setup( id, (u32)freq, duty );
+  freq = platform_pwm_setup( gpio, (u32)freq, duty );
   if(freq==0)
     return luaL_error( L, "too many pwms." );
   lua_pushinteger( L, freq );
   return 1;  
 }
 
-// Lua: close( id )
+// Lua: close( gpio )
 static int lpwm_close( lua_State* L )
 {
-  unsigned id;
+  unsigned gpio;
   
-  id = luaL_checkinteger( L, 1 );
-  MOD_CHECK_ID( pwm, id );
-  platform_pwm_close( id );
+  gpio = luaL_checkinteger( L, 1 );
+  MOD_CHECK_gpio( pwm, gpio );
+  platform_pwm_close( gpio );
   return 0;  
 }
 
-// Lua: start( id )
+// Lua: start( gpio )
 static int lpwm_start( lua_State* L )
 {
-  unsigned id;
-  id = luaL_checkinteger( L, 1 );
-  MOD_CHECK_ID( pwm, id );
-  platform_pwm_start( id );
+  unsigned gpio;
+  gpio = luaL_checkinteger( L, 1 );
+  MOD_CHECK_gpio( pwm, gpio );
+  platform_pwm_start( gpio );
   return 0;  
 }
 
-// Lua: stop( id )
+// Lua: stop( gpio )
 static int lpwm_stop( lua_State* L )
 {
-  unsigned id;
+  unsigned gpio;
   
-  id = luaL_checkinteger( L, 1 );
-  MOD_CHECK_ID( pwm, id );
-  platform_pwm_stop( id );
+  gpio = luaL_checkinteger( L, 1 );
+  MOD_CHECK_gpio( pwm, gpio );
+  platform_pwm_stop( gpio );
   return 0;  
 }
 
-// Lua: realclock = setclock( id, clock )
+// Lua: realclock = setclock( gpio, clock )
 static int lpwm_setclock( lua_State* L )
 {
-  unsigned id;
+  unsigned gpio;
   s32 clk;	// signed to error-check for negative values
   
-  id = luaL_checkinteger( L, 1 );
-  MOD_CHECK_ID( pwm, id );
+  gpio = luaL_checkinteger( L, 1 );
+  MOD_CHECK_gpio( pwm, gpio );
   clk = luaL_checkinteger( L, 2 );
   if ( clk <= 0 )
     return luaL_error( L, "wrong arg range" );
-  clk = platform_pwm_set_clock( id, (u32)clk );
+  clk = platform_pwm_set_clock( gpio, (u32)clk );
   lua_pushinteger( L, clk );
   return 1;
 }
 
-// Lua: clock = getclock( id )
+// Lua: clock = getclock( gpio )
 static int lpwm_getclock( lua_State* L )
 {
-  unsigned id;
+  unsigned gpio;
   u32 clk;
   
-  id = luaL_checkinteger( L, 1 );
-  MOD_CHECK_ID( pwm, id );
-  clk = platform_pwm_get_clock( id );
+  gpio = luaL_checkinteger( L, 1 );
+  MOD_CHECK_gpio( pwm, gpio );
+  clk = platform_pwm_get_clock( gpio );
   lua_pushinteger( L, clk );
   return 1;
 }
 
-// Lua: realduty = setduty( id, duty )
+// Lua: realduty = setduty( gpio, duty )
 static int lpwm_setduty( lua_State* L )
 {
-  unsigned id;
+  unsigned gpio;
   s32 duty;  // signed to error-check for negative values
   
-  id = luaL_checkinteger( L, 1 );
-  MOD_CHECK_ID( pwm, id );
+  gpio = luaL_checkinteger( L, 1 );
+  MOD_CHECK_gpio( pwm, gpio );
   duty = luaL_checkinteger( L, 2 );
   if ( duty > NORMAL_PWM_DEPTH )
     return luaL_error( L, "wrong arg range" );
-  duty = platform_pwm_set_duty( id, (u32)duty );
+  duty = platform_pwm_set_duty( gpio, (u32)duty );
   lua_pushinteger( L, duty );
   return 1;
 }
 
-// Lua: duty = getduty( id )
+// Lua: duty = getduty( gpio )
 static int lpwm_getduty( lua_State* L )
 {
-  unsigned id;
+  unsigned gpio;
   u32 duty;
   
-  id = luaL_checkinteger( L, 1 );
-  MOD_CHECK_ID( pwm, id );
-  duty = platform_pwm_get_duty( id );
+  gpio = luaL_checkinteger( L, 1 );
+  MOD_CHECK_gpio( pwm, gpio );
+  duty = platform_pwm_get_duty( gpio );
   lua_pushinteger( L, duty );
   return 1;
 }

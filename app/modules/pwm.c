@@ -19,7 +19,7 @@ static int lpwm_setup( lua_State* L )
   gpio = luaL_checkinteger( L, 1 );
   if(gpio==16)
     return luaL_error( L, "no pwm for GPIO16" );
-  MOD_CHECK_gpio( pwm, gpio );
+  MOD_CHECK_ID( pwm, gpio );
   freq = luaL_checkinteger( L, 2 );
   if ( freq <= 0 )
     return luaL_error( L, "wrong arg range" );
@@ -40,7 +40,7 @@ static int lpwm_close( lua_State* L )
   unsigned gpio;
   
   gpio = luaL_checkinteger( L, 1 );
-  MOD_CHECK_gpio( pwm, gpio );
+  MOD_CHECK_ID( pwm, gpio );
   platform_pwm_close( gpio );
   return 0;  
 }
@@ -50,7 +50,7 @@ static int lpwm_start( lua_State* L )
 {
   unsigned gpio;
   gpio = luaL_checkinteger( L, 1 );
-  MOD_CHECK_gpio( pwm, gpio );
+  MOD_CHECK_ID( pwm, gpio );
   platform_pwm_start( gpio );
   return 0;  
 }
@@ -61,7 +61,7 @@ static int lpwm_stop( lua_State* L )
   unsigned gpio;
   
   gpio = luaL_checkinteger( L, 1 );
-  MOD_CHECK_gpio( pwm, gpio );
+  MOD_CHECK_ID( pwm, gpio );
   platform_pwm_stop( gpio );
   return 0;  
 }
@@ -73,7 +73,7 @@ static int lpwm_setclock( lua_State* L )
   s32 clk;	// signed to error-check for negative values
   
   gpio = luaL_checkinteger( L, 1 );
-  MOD_CHECK_gpio( pwm, gpio );
+  MOD_CHECK_ID( pwm, gpio );
   clk = luaL_checkinteger( L, 2 );
   if ( clk <= 0 )
     return luaL_error( L, "wrong arg range" );
@@ -89,7 +89,7 @@ static int lpwm_getclock( lua_State* L )
   u32 clk;
   
   gpio = luaL_checkinteger( L, 1 );
-  MOD_CHECK_gpio( pwm, gpio );
+  MOD_CHECK_ID( pwm, gpio );
   clk = platform_pwm_get_clock( gpio );
   lua_pushinteger( L, clk );
   return 1;
@@ -102,7 +102,7 @@ static int lpwm_setduty( lua_State* L )
   s32 duty;  // signed to error-check for negative values
   
   gpio = luaL_checkinteger( L, 1 );
-  MOD_CHECK_gpio( pwm, gpio );
+  MOD_CHECK_ID( pwm, gpio );
   duty = luaL_checkinteger( L, 2 );
   if ( duty > NORMAL_PWM_DEPTH )
     return luaL_error( L, "wrong arg range" );
@@ -118,7 +118,7 @@ static int lpwm_getduty( lua_State* L )
   u32 duty;
   
   gpio = luaL_checkinteger( L, 1 );
-  MOD_CHECK_gpio( pwm, gpio );
+  MOD_CHECK_ID( pwm, gpio );
   duty = platform_pwm_get_duty( gpio );
   lua_pushinteger( L, duty );
   return 1;

@@ -28,6 +28,75 @@ static int i2c_setup( lua_State *L )
   return 1;
 }
 
+static int i2c_scan_find_dev(i2c_id, dev_addr)
+{
+  platform_i2c_send_start( i2c_id );
+  int good = platform_i2c_send_address( i2c_id, (u16)dev_addr, 
+    PLATFORM_I2C_DIRECTION_TRANSMITTER );
+  platform_i2c_send_stop( i2c_id );
+  return good;
+}
+
+// Lua: i2c.start( id )
+//for gpio1 or gpio3 you have to specify it
+//to scan at all gpios (except 1 and 3) pass -1
+static int i2c_scan( lua_State *L )
+{
+  unsigned id = luaL_checkinteger(L, 1 );
+  unsigned sda = luaL_optinteger(L, 2 , -1);
+  unsigned scl = luaL_optinteger(L, 3, -1);
+  char temp[80];
+
+  MOD_CHECK_ID( i2c, id );
+
+  int sdas[] = {5,4,2,14,12,13,0};//{4,5,9,10,12,13,14,0,2};
+  int scls[] = {5,4,2,14,12,13,0};//{4,5,9,10,12,13,14,0,2};
+  int N = 7;//sizeof(sda)/sizeof(sdas[0]);
+  if(sda >=0 && sda <= 15 && scl >= 0 && scl <= 15){
+    sdas[0] = sda;
+    scls[0] = scl;
+    sdas[1] = scl;
+    scls[1] = sda;
+    N = 2;
+  }
+
+  int found = 0;
+  int speed = PLATFORM_I2C_SPEED_SLOW;
+  c_sprintf(temp, "scanning on i2c bus %d\n", id);
+  c_puts(temp);
+  int sdai,scli, addr;
+  for(sdai = 0; sdai < N; sdai++){
+    wdt_feed(); //reset watchdog
+    for(scli = 0; scli < N; scli++){
+
+      sda = sdas[sdai];
+      scl = scls[scli];
+      if(sda == scl){
+        continue;
+      }
+
+      platform_i2c_setup( id, sda, scl, (u32)speed );
+
+      for(addr = 0; addr < 128; addr++){
+        if(i2c_scan_find_dev(id, addr)){
+          found = 1;
+          c_sprintf(temp, 
+            "found device at %x/%d, SDA at GPIO%d, SCL at GPIO%d\n", 
+            addr, addr, sda, scl);
+          c_puts(temp);
+        }
+      }
+
+    }
+  }
+
+  if(!found){
+    c_puts( "no i2c devices found!\n");
+  }
+
+  return 0;
+}
+
 // Lua: i2c.start( id )
 static int i2c_start( lua_State *L )
 {
@@ -153,6 +222,7 @@ const LUA_REG_TYPE i2c_map[] =
   { LSTRKEY( "address" ), LFUNCVAL( i2c_address ) },
   { LSTRKEY( "write" ), LFUNCVAL( i2c_write ) },
   { LSTRKEY( "read" ), LFUNCVAL( i2c_read ) },
+  { LSTRKEY( "scan" ), LFUNCVAL( i2c_scan ) },
 #if LUA_OPTIMIZE_MEMORY > 0
   // { LSTRKEY( "FAST" ), LNUMVAL( PLATFORM_I2C_SPEED_FAST ) },
   { LSTRKEY( "SLOW" ), LNUMVAL( PLATFORM_I2C_SPEED_SLOW ) },

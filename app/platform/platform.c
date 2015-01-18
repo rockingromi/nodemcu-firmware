@@ -291,8 +291,9 @@ static void pwms_init()
 uint32_t platform_pwm_get_clock( unsigned pin )
 {
   // NODE_DBG("Function platform_pwm_get_clock() is called.\n");
-  if( pin >= NUM_PWM)
+  if(is_gpio_invalid(pin)){
     return 0;
+  }
   if(!pwm_exist(pin))
     return 0;
 
@@ -303,8 +304,9 @@ uint32_t platform_pwm_get_clock( unsigned pin )
 uint32_t platform_pwm_set_clock( unsigned pin, uint32_t clock )
 {
   // NODE_DBG("Function platform_pwm_set_clock() is called.\n");
-  if( pin >= NUM_PWM)
+  if(is_gpio_invalid(pin)){
     return 0;
+  }
   if(!pwm_exist(pin))
     return 0;
 
@@ -316,37 +318,38 @@ uint32_t platform_pwm_set_clock( unsigned pin, uint32_t clock )
 uint32_t platform_pwm_get_duty( unsigned pin )
 {
   // NODE_DBG("Function platform_pwm_get_duty() is called.\n");
-  if( pin < NUM_PWM){
+    if(is_gpio_invalid(pin)){
+        return 0;
+    }
     if(!pwm_exist(pin))
       return 0;
     // return NORMAL_DUTY(pwm_get_duty(pin));
     return pwms_duty[pin];
-  }
-  return 0;
 }
 
 // Set the PWM duty
 uint32_t platform_pwm_set_duty( unsigned pin, uint32_t duty )
 {
   // NODE_DBG("Function platform_pwm_set_duty() is called.\n");
-  if ( pin < NUM_PWM)
-  {
+    if(is_gpio_invalid(pin)){
+        return 0;
+    }
     if(!pwm_exist(pin))
       return 0;
     pwm_set_duty(DUTY(duty), pin);
-  } else {
-    return 0;
-  }
-  pwm_start();
-  pwms_duty[pin] = NORMAL_DUTY(pwm_get_duty(pin));
-  return pwms_duty[pin];
+
+    pwm_start();
+    pwms_duty[pin] = NORMAL_DUTY(pwm_get_duty(pin));
+    return pwms_duty[pin];
 }
 
 uint32_t platform_pwm_setup( unsigned pin, uint32_t frequency, unsigned duty )
 {
-  uint32_t clock;
-  if ( pin < NUM_PWM)
-  {
+    if(is_gpio_invalid(pin)){
+        return 0;
+    }
+    uint32_t clock;
+
     platform_gpio_mode(pin, PLATFORM_GPIO_OUTPUT, PLATFORM_GPIO_FLOAT);  // disable gpio interrupt first
     if(!pwm_add(pin)) 
       return 0;
@@ -354,53 +357,51 @@ uint32_t platform_pwm_setup( unsigned pin, uint32_t frequency, unsigned duty )
     pwm_set_duty(0, pin);
     pwms_duty[pin] = duty;
     pwm_set_freq((uint16_t)frequency, pin);
-  } else {
-    return 0;
-  }
-  clock = platform_pwm_get_clock( pin );
-  pwm_start();
-  return clock;
+
+    clock = platform_pwm_get_clock( pin );
+    pwm_start();
+    return clock;
 }
 
 void platform_pwm_close( unsigned pin )
 {
   // NODE_DBG("Function platform_pwm_stop() is called.\n");
-  if ( pin < NUM_PWM)
-  {
+    if(is_gpio_invalid(pin)){
+        return;
+    }
     pwm_delete(pin);
     pwm_start();
-  }
 }
 
 void platform_pwm_start( unsigned pin )
 {
   // NODE_DBG("Function platform_pwm_start() is called.\n");
-  if ( pin < NUM_PWM)
-  {
+    if(is_gpio_invalid(pin)){
+        return;
+    }
     if(!pwm_exist(pin))
       return;
     pwm_set_duty(DUTY(pwms_duty[pin]), pin);
     pwm_start();
-  }
 }
 
 void platform_pwm_stop( unsigned pin )
 {
   // NODE_DBG("Function platform_pwm_stop() is called.\n");
-  if ( pin < NUM_PWM)
-  {
+  if(is_gpio_invalid(pin)){
+    return;
+  }
     if(!pwm_exist(pin))
       return;
     pwm_set_duty(0, pin);
     pwm_start();
-  }
 }
 
 // *****************************************************************************
 // I2C platform interface
 
 uint32_t platform_i2c_setup( unsigned id, uint8_t sda, uint8_t scl, uint32_t speed ){
-  if (sda >= NUM_GPIO || scl >= NUM_GPIO)
+  if (is_gpio_invalid(sda) || is_gpio_invalid(scl))
     return 0;
 
   // platform_pwm_close(sda);
@@ -445,6 +446,20 @@ int platform_i2c_recv_byte( unsigned id, int ack ){
   uint8_t r = i2c_master_readByte();
   i2c_master_setAck( !ack );
   return r;
+}
+
+// *****************************************************************************
+// SPI platform interface
+uint32_t platform_spi_setup( unsigned id, int mode, unsigned cpol, unsigned cpha, unsigned databits, uint32_t clock)
+{
+  spi_master_init(id, cpol, cpha, databits, clock);
+  return 1;
+}
+
+spi_data_type platform_spi_send_recv( unsigned id, spi_data_type data )
+{
+  spi_mast_byte_write(id, &data);
+  return data;
 }
 
 // ****************************************************************************

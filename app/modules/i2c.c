@@ -117,7 +117,7 @@ static int i2c_scan( lua_State *L )
     lua_pushinteger(L, found_addr);
   }
 
-  return 0;
+  return 3;
 }
 
 // Lua: i2c.start( id )

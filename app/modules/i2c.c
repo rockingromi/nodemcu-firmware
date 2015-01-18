@@ -37,53 +37,71 @@ static int i2c_scan_find_dev(i2c_id, dev_addr)
   return good;
 }
 
-// Lua: i2c.start( id )
-//for gpio1 or gpio3 you have to specify it
-//to scan at all gpios (except 1 and 3) pass -1
+// Lua: i2c.scan( id )
+// if you just pass bus id, it scans GPIOs 0,2,4,5,12,13,14
+// if you want to scan other GPIOs, pass them to the function
 static int i2c_scan( lua_State *L )
 {
   unsigned id = luaL_checkinteger(L, 1 );
-  unsigned sda = luaL_optinteger(L, 2 , -1);
+  unsigned sda = luaL_optinteger(L, 2, -1);
   unsigned scl = luaL_optinteger(L, 3, -1);
-  char temp[80];
+  char temp[128];
 
   MOD_CHECK_ID( i2c, id );
 
-  int sdas[] = {5,4,2,14,12,13,0};//{4,5,9,10,12,13,14,0,2};
-  int scls[] = {5,4,2,14,12,13,0};//{4,5,9,10,12,13,14,0,2};
-  int N = 7;//sizeof(sda)/sizeof(sdas[0]);
+  int sdas[] = {0,2,4,5,12,13,14};
+  int scls[] = {0,2,4,5,12,13,14};
+  int N = sizeof(sdas)/sizeof(sdas[0]);
   if(sda >=0 && sda <= 15 && scl >= 0 && scl <= 15){
-    sdas[0] = sda;
-    scls[0] = scl;
-    sdas[1] = scl;
-    scls[1] = sda;
+    sdas[0] = scls[1] = sda;
+    scls[0] = sdas[1] = scl;
     N = 2;
   }
 
   int found = 0;
+  int found_sda, found_scl, found_addr, ok;
   int speed = PLATFORM_I2C_SPEED_SLOW;
   c_sprintf(temp, "scanning on i2c bus %d\n", id);
   c_puts(temp);
   int sdai,scli, addr;
   for(sdai = 0; sdai < N; sdai++){
-    wdt_feed(); //reset watchdog
+    WRITE_PERI_REG(0x60000914, 0x73); //reset watchdog
     for(scli = 0; scli < N; scli++){
-
+      
       sda = sdas[sdai];
       scl = scls[scli];
       if(sda == scl){
         continue;
       }
 
-      platform_i2c_setup( id, sda, scl, (u32)speed );
+      ok = platform_i2c_setup( id, sda, scl, (u32)speed );
+      if(!ok){
+        c_puts("error setting up i2c\n");
+        lua_pushnil(L); lua_pushnil(L); lua_pushnil(L);
+        return 0;
+      }
 
+      int found_n = 0;
       for(addr = 0; addr < 128; addr++){
         if(i2c_scan_find_dev(id, addr)){
+          WRITE_PERI_REG(0x60000914, 0x73); //reset watchdog
           found = 1;
+          found_addr = addr;
+          found_scl = scl;
+          found_sda = sda;
           c_sprintf(temp, 
-            "found device at %x/%d, SDA at GPIO%d, SCL at GPIO%d\n", 
+            "found device at 0x%x/%d, SDA at GPIO%d, SCL at GPIO%d\n", 
             addr, addr, sda, scl);
           c_puts(temp);
+          found_n++;
+          if(N != 2 && found_n > 3){
+            c_sprintf(temp, 
+              "skipping GPIO%d , maybe SDA/GPIO%d is pulled low?\n", 
+              sda, sda);
+            c_puts(temp);
+            scli = N;
+            break;
+          }
         }
       }
 
@@ -92,6 +110,11 @@ static int i2c_scan( lua_State *L )
 
   if(!found){
     c_puts( "no i2c devices found!\n");
+    lua_pushnil(L); lua_pushnil(L); lua_pushnil(L);
+  }else{
+    lua_pushinteger(L, found_sda);
+    lua_pushinteger(L, found_scl);
+    lua_pushinteger(L, found_addr);
   }
 
   return 0;

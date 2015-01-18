@@ -32,8 +32,8 @@ uint32_t pin_mux[GPIO_MAX_INDEX+1] = {PERIPHS_IO_MUX_GPIO0_U, PERIPHS_IO_MUX_U0T
 								  10};*/
 #undef UNDEFINED                                  
 #define UNDEFINED FUNC_GPIO5 //better than 0 in case of unallowed gpio access
-uint8_t pin_func[GPIO_MAX_INDEX+1] = {FUNC_GPIO0, FUNC_GPIO1, FUNC_GPIO3, FUNC_GPIO4,
-                                  FUNC_GPIO5, UNDEFINED, UNDEFINED, UNDEFINED, FUNC_GPIO9, 
+uint8_t pin_func[GPIO_MAX_INDEX+1] = {FUNC_GPIO0, FUNC_GPIO1, FUNC_GPIO2, FUNC_GPIO3, 
+                                  FUNC_GPIO4, FUNC_GPIO5, UNDEFINED, UNDEFINED, UNDEFINED, FUNC_GPIO9, 
                                   FUNC_GPIO10, UNDEFINED, FUNC_GPIO12, FUNC_GPIO13, 
                                   FUNC_GPIO14, FUNC_GPIO15, UNDEFINED};
 #undef UNDEFINED

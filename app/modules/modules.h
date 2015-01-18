@@ -101,6 +101,14 @@
 #define ROM_MODULES_BIT
 #endif
 
+#if defined(LUA_USE_MODULES_DISPLAY)
+#define MODULES_DISPLAY       "display"
+#define ROM_MODULES_DISPLAY   \
+    _ROM(MODULES_DISPLAY, luaopen_display, display_map)
+#else
+#define ROM_MODULES_DISPLAY
+#endif
+
 #define LUA_MODULES_ROM      \
         ROM_MODULES_GPIO    \
         ROM_MODULES_PWM		\
@@ -113,7 +121,8 @@
         ROM_MODULES_ADC     \
         ROM_MODULES_UART    \
         ROM_MODULES_OW      \
-        ROM_MODULES_BIT
+        ROM_MODULES_BIT     \
+        ROM_MODULES_DISPLAY \
 
 #endif
 

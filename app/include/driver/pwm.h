@@ -15,7 +15,7 @@ struct pwm_param {
     uint16  duty[PWM_CHANNEL];
 };
 
-#define PWM_DEPTH 1023
+#define PWM_DEPTH 10000
 #define PWM_FREQ_MAX 1000
 
 #define PWM_1S 1000000

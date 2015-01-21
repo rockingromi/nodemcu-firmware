@@ -116,7 +116,7 @@ pwm_start(void)
 
     // step 1: init PWM_CHANNEL+1 channels param
     for (i = 0; i < pwm_channel_num; i++) {
-        uint32 us = pwm.period * pwm.duty[i] / PWM_DEPTH;
+        uint32 us = ((uint32)(pwm.period * pwm.duty[i])) / PWM_DEPTH;
         local_single[i].h_time = US_TO_RTC_TIMER_TICKS(us);
         PWM_DBG("i:%d us:%d ht:%d\n",i,us,local_single[i].h_time);
         local_single[i].gpio_set = 0;

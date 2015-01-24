@@ -42,7 +42,7 @@ static int i2c_scan_find_dev(i2c_id, dev_addr)
 // if you want to scan other GPIOs, pass them to the function
 static int i2c_scan( lua_State *L )
 {
-  unsigned id = luaL_checkinteger(L, 1 );
+  unsigned id = luaL_optinteger(L, 1, 0);
   unsigned sda = luaL_optinteger(L, 2, -1);
   unsigned scl = luaL_optinteger(L, 3, -1);
   char temp[128];
@@ -78,7 +78,7 @@ static int i2c_scan( lua_State *L )
       if(!ok){
         c_puts("error setting up i2c\n");
         lua_pushnil(L); lua_pushnil(L); lua_pushnil(L);
-        return 0;
+        return 3;
       }
 
       int found_n = 0;

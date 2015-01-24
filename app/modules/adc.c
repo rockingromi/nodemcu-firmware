@@ -19,12 +19,23 @@ static int adc_sample( lua_State* L )
   return 1; 
 }
 
+//voltage in mV
+static int adc_read_vdd( lua_State* L )
+{
+  unsigned val = readvdd33();
+  //refine this
+  unsigned mV = val*1000/647 + 854;
+  lua_pushinteger( L, mV );
+  return 1; 
+}
+
 // Module function map
 #define MIN_OPT_LEVEL 2
 #include "lrodefs.h"
 const LUA_REG_TYPE adc_map[] = 
 {
   { LSTRKEY( "read" ), LFUNCVAL( adc_sample ) },
+  { LSTRKEY( "read_vdd" ), LFUNCVAL( adc_read_vdd ) },
 #if LUA_OPTIMIZE_MEMORY > 0
 
 #endif

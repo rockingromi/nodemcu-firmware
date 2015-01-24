@@ -1,6 +1,8 @@
 #ifndef __I2C_MASTER_H__
 #define __I2C_MASTER_H__
 
+#include "c_types.h"
+
 #define I2C_MASTER_SDA_MUX (pin_mux[sda])
 #define I2C_MASTER_SCL_MUX (pin_mux[scl])
 #define I2C_MASTER_SDA_GPIO (pinSDA)

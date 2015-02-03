@@ -68,7 +68,7 @@
 #define LUA_USE_MODULES_DISPLAY
 #endif
 
-// #define LUA_NUMBER_INTEGRAL
+ #define LUA_NUMBER_INTEGRAL
 #ifndef LUA_NUMBER_INTEGRAL
 #define PRINTF_LONG_SUPPORT
 #endif

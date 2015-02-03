@@ -195,8 +195,6 @@ LUALIB_API int luaopen_gpio( lua_State *L )
 #endif
   MOD_REG_NUMBER( L, "OUTPUT", OUTPUT );
   MOD_REG_NUMBER( L, "INPUT", INPUT );
-  MOD_REG_NUMBER( L, "HIGH", HIGH );
-  MOD_REG_NUMBER( L, "LOW", LOW );
   MOD_REG_NUMBER( L, "FLOAT", FLOAT );
   MOD_REG_NUMBER( L, "PULLUP", PULLUP );
   return 1;

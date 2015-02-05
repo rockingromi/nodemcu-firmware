@@ -134,6 +134,46 @@ static int lgpio_read( lua_State* L )
   return 1; 
 }
 
+static int crazy_gpio_toggle(lua_State* L){
+  unsigned pin;
+  
+  uint32_t gpio_no = luaL_checkinteger( L, 1 );
+
+  int bit_value = 0x0;
+  uint32_t set_mask_0 = bit_value<<gpio_no;
+  uint32_t clear_mask_0 = ((~bit_value)&0x01)<<gpio_no;
+  uint32_t enable_mask_0 = 1<<gpio_no;
+  uint32_t disable_mask_0 = 0;
+
+  bit_value = 0x1;
+  uint32_t set_mask_1 = bit_value<<gpio_no;
+  uint32_t clear_mask_1 = ((~bit_value)&0x01)<<gpio_no;
+  uint32_t enable_mask_1 = 1<<gpio_no;
+  uint32_t disable_mask_1 = 0;
+
+  uint32_t i;
+  for(i = 10*1000*1000; i >= 0; i--){
+    gpio_output_set(set_mask_0, clear_mask_0, enable_mask_0, disable_mask_0);
+    gpio_output_set(set_mask_1, clear_mask_1, enable_mask_1, disable_mask_1);
+    gpio_output_set(set_mask_0, clear_mask_0, enable_mask_0, disable_mask_0);
+    gpio_output_set(set_mask_1, clear_mask_1, enable_mask_1, disable_mask_1);
+    gpio_output_set(set_mask_0, clear_mask_0, enable_mask_0, disable_mask_0);
+    gpio_output_set(set_mask_1, clear_mask_1, enable_mask_1, disable_mask_1);
+    gpio_output_set(set_mask_0, clear_mask_0, enable_mask_0, disable_mask_0);
+    gpio_output_set(set_mask_1, clear_mask_1, enable_mask_1, disable_mask_1);
+    gpio_output_set(set_mask_0, clear_mask_0, enable_mask_0, disable_mask_0);
+    gpio_output_set(set_mask_1, clear_mask_1, enable_mask_1, disable_mask_1);
+    gpio_output_set(set_mask_0, clear_mask_0, enable_mask_0, disable_mask_0);
+    gpio_output_set(set_mask_1, clear_mask_1, enable_mask_1, disable_mask_1);
+    gpio_output_set(set_mask_0, clear_mask_0, enable_mask_0, disable_mask_0);
+    gpio_output_set(set_mask_1, clear_mask_1, enable_mask_1, disable_mask_1);
+    gpio_output_set(set_mask_0, clear_mask_0, enable_mask_0, disable_mask_0);
+    gpio_output_set(set_mask_1, clear_mask_1, enable_mask_1, disable_mask_1);
+  }
+
+  return 0;
+}
+
 // Lua: write( pin, level )
 static int lgpio_write( lua_State* L )
 {
@@ -157,6 +197,7 @@ static int lgpio_write( lua_State* L )
 const LUA_REG_TYPE gpio_map[] = 
 {
   { LSTRKEY( "mode" ), LFUNCVAL( lgpio_mode ) },
+  { LSTRKEY( "crazy_toggle" ), LFUNCVAL( crazy_gpio_toggle ) },
   { LSTRKEY( "read" ), LFUNCVAL( lgpio_read ) },
   { LSTRKEY( "write" ), LFUNCVAL( lgpio_write ) },
 #ifdef GPIO_INTERRUPT_ENABLE

@@ -143,10 +143,11 @@ static int lgpio_write( lua_State* L )
   pin = luaL_checkinteger( L, 1 );
   //MOD_CHECK_ID( gpio, pin );
   level = luaL_checkinteger( L, 2 );
-  if ( level!=HIGH && level!=LOW )
-    return luaL_error( L, "wrong arg type" );
+  level = level & 0x1; //remove conditional branching
+  //if ( level!=HIGH && level!=LOW )
+  //  return luaL_error( L, "wrong arg type" );
   int success = platform_gpio_write(pin, level);
-  CHECK_GPIO_SUCCESS(pin, success);
+  //CHECK_GPIO_SUCCESS(pin, success);
   return 0;  
 }
 

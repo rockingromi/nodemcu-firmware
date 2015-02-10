@@ -3,4 +3,4 @@
 - node.dsleep() takes milli seconds instead of micro seconds
 - i2c.scan([bus], [sda], [scl]) scans for i2c slaves on the bus
 - floats are disabled for now
-- change cpu frequency with node.set_cpu_freq(80|160)
+- change cpu frequency with node.setcpufreq(80|160)
